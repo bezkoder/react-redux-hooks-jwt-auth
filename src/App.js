@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Router, Switch, Route, Link } from "react-router-dom";
 
@@ -18,6 +18,9 @@ import { clearMessage } from "./actions/message";
 
 import { history } from "./helpers/history";
 
+// import AuthVerify from "./common/AuthVerify";
+import EventBus from "./common/EventBus";
+
 const App = () => {
   const [showModeratorBoard, setShowModeratorBoard] = useState(false);
   const [showAdminBoard, setShowAdminBoard] = useState(false);
@@ -31,16 +34,27 @@ const App = () => {
     });
   }, [dispatch]);
 
+  const logOut = useCallback(() => {
+    dispatch(logout());
+  }, [dispatch]);
+
   useEffect(() => {
     if (currentUser) {
       setShowModeratorBoard(currentUser.roles.includes("ROLE_MODERATOR"));
       setShowAdminBoard(currentUser.roles.includes("ROLE_ADMIN"));
+    } else {
+      setShowModeratorBoard(false);
+      setShowAdminBoard(false);
     }
-  }, [currentUser]);
 
-  const logOut = () => {
-    dispatch(logout());
-  };
+    EventBus.on("logout", () => {
+      logOut();
+    });
+
+    return () => {
+      EventBus.remove("logout");
+    };
+  }, [currentUser, logOut]);
 
   return (
     <Router history={history}>
@@ -122,6 +136,8 @@ const App = () => {
             <Route path="/admin" component={BoardAdmin} />
           </Switch>
         </div>
+
+        {/* <AuthVerify logOut={logOut}/> */}
       </div>
     </Router>
   );
