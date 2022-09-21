@@ -1,5 +1,5 @@
-import React from "react";
-import { history } from '../helpers/history';
+import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const parseJwt = (token) => {
   try {
@@ -10,7 +10,9 @@ const parseJwt = (token) => {
 };
 
 const AuthVerify = (props) => {
-  history.listen(() => {
+  let location = useLocation();
+
+  useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (user) {
@@ -20,7 +22,7 @@ const AuthVerify = (props) => {
         props.logOut();
       }
     }
-  });
+  }, [location, props]);
 
   return <div></div>;
 };
